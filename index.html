@@ -10,17 +10,17 @@
 
     :root {
       --bg: #ffffff;
-      --bg2: #f6f8f6;
-      --bg3: #eef3ee;
-      --text: #1a1a1a;
+      --bg2: #f7f6f8;
+      --bg3: #efeef3;
+      --text: #1b1b1b;
       --muted: #666;
-      --border: #d8e0d8;
-      --brand: #1a6b4a;
+      --border: #dbd8e0;
+      --brand: #2d1a6b;
       --brand-light: #e8f5ef;
       --amber: #92520a;
       --amber-bg: #fef3e2;
-      --green: #2d6a1f;
-      --green-bg: #eaf3de;
+      --prple: #2a1f6a;
+      --prple-bg: #e7def3;
       --red: #8b1a1a;
       --red-bg: #fdf0f0;
       --radius: 8px;
@@ -30,18 +30,18 @@
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #141a14;
-        --bg2: #131813;
-        --bg3: #1c231c;
-        --text: #e8ede8;
-        --muted: #8a9e8a;
+        --bg: #16141a;
+        --bg2: #1b1b1b;
+        --bg3: rgb(0, 0, 0);
+        --text: #eae8ed;
+        --muted: #928a9e;
         --border: #171a17;
-        --brand: #727771;
-        --brand-light: #1a2e22;
+        --brand: #737177;
+        --brand-light: #201a2e;
         --amber: #e0a050;
         --amber-bg: #2a1f0a;
-        --green: #727771;
-        --green-bg: #152010;
+        --prple: #737177;
+        --prple-bg: #171020;
         --red: #e07070;
         --red-bg: #2a1010;
       }
@@ -207,7 +207,7 @@
       font-size: 26px;
       font-weight: 600;
     }
-    .score-card .s-val.good { color: var(--green); }
+    .score-card .s-val.good { color: var(--prple); }
     .score-card .s-val.ok   { color: var(--amber); }
     .score-card .s-val.bad  { color: var(--red); }
 
@@ -229,7 +229,7 @@
       border-left: 3px solid;
     }
     .finding.improvement { border-left-color: var(--amber); background: var(--bg2); }
-    .finding.positive    { border-left-color: var(--green); background: var(--bg2); }
+    .finding.positive    { border-left-color: var(--prple); background: var(--bg2); }
     .finding.critical    { border-left-color: var(--red);   background: var(--bg2); }
 
     .finding-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
@@ -240,7 +240,7 @@
       text-transform: uppercase; letter-spacing: 0.05em;
     }
     .tag-improve  { background: var(--amber-bg); color: var(--amber); }
-    .tag-positive { background: var(--green-bg); color: var(--green); }
+    .tag-positive { background: var(--prple-bg); color: var(--prple); }
     .tag-critical { background: var(--red-bg);   color: var(--red); }
 
     .finding-title { font-size: 13px; font-weight: 600; color: var(--text); }
@@ -347,7 +347,7 @@
     }
     .key-dot {
       width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
+      background: var(--prple);
       flex-shrink: 0;
     }
     .key-change {
@@ -374,7 +374,6 @@
     <input type="password" id="key-input" placeholder="sk-ant-..." autocomplete="off" />
     <button class="btn-save" onclick="saveKey()">Start reviewing</button>
     <div class="privacy-note">
-      <i class="ti ti-lock" aria-hidden="true" style="font-size:13px"></i>
       Key lives in memory only and clears when you close the tab
     </div>
   </div>
@@ -660,7 +659,7 @@ ${code}
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
