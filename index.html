@@ -305,7 +305,7 @@
   <i class="ti ti-code-dots" aria-hidden="true"></i>
   <div>
     <h1>AI Code Review Assistant</h1>
-    <p>Instant feedback on readability, structure & maintainability — before human review</p>
+    <p>Instant feedback on readability, structure & maintainability - before human review</p>
   </div>
 </header>
 
@@ -318,10 +318,8 @@
     <span class="lang-label">Language:</span>
     <button class="lang-btn active" data-lang="Python">Python</button>
     <button class="lang-btn" data-lang="JavaScript">JavaScript</button>
-    <button class="lang-btn" data-lang="TypeScript">TypeScript</button>
-    <button class="lang-btn" data-lang="Go">Go</button>
     <button class="lang-btn" data-lang="SQL">SQL</button>
-    <button class="lang-btn" data-lang="Other">Other</button>
+    <button class="lang-btn" data-lang="R">R</button>
   </div>
 
   <textarea id="code-input" placeholder="Paste your code here...&#10;&#10;Best results: a single function, class, or module (up to ~100 lines)."></textarea>
@@ -355,13 +353,11 @@
 </main>
 
 <footer>
-  Built with the <a href="https://www.anthropic.com" target="_blank">Anthropic Claude API</a> ·
-  <!-- TODO: add your GitHub link here -->
-  <a href="https://github.com/shrouqgh" target="_blank">shrouqgh.github.io</a>
+  Built with the <a href="https://www.anthropic.com" target="_blank">Anthropic Claude API</a> · <a href="https://github.com/shrouqgh" target="_blank">shrouqgh.github.io</a>
 </footer>
 
 <script>
-// ── Example snippets ──
+// ── example snippets ──
 const EXAMPLES = {
   python_bad: `def calc(l):
     r = 0
@@ -395,7 +391,7 @@ def process(data, flag, x=None, y=None, z=None):
   sql_poor: `select * from orders o, customers c where o.customer_id = c.id and o.status = 'active' and c.country = 'SA' order by o.created_at`
 };
 
-// ── State –––––
+// ── state –––––
 let selectedLang = 'Python';
 
 // ── Language toggle ───
@@ -407,7 +403,7 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
   });
 });
 
-// ── Char counter ───
+// ── char counter ───
 const codeInput = document.getElementById('code-input');
 codeInput.addEventListener('input', () => {
   document.getElementById('char-count').textContent = codeInput.value.length;
@@ -495,7 +491,7 @@ function renderResults(data) {
     <div class="summary-box">${esc(data.summary || '')}</div>`;
 }
 
-// ── Core API call ───
+// ── API call ───
 async function runReview() {
   const code = codeInput.value.trim();
   if (!code) return;
