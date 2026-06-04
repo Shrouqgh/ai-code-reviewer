@@ -22,7 +22,7 @@ Open `index.html` in your browser. You'll need an [Anthropic API key](https://co
 
 You'll be prompted for your Anthropic API key on load.
 
-> **Note:** The API key you enter is held in ~memory only~ and cleared when you close the tab - it never touches any server except Anthropic's.
+> **Note:** The API key you enter is held in <u>memory only</u> and cleared when you close the tab - it never touches any server except Anthropic's.
 
 
 
