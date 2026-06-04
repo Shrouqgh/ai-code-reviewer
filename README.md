@@ -35,12 +35,12 @@ The prompt is in `index.html` inside the `runReview()` function - clearly commen
 
 ## Things I'd add in the future
 
-- [ ] Backend proxy so the API key isn't in the browser
-- [ ] Side-by-side diff view for the suggestion snippets
-- [ ] History of past reviews in the session
-- [ ] Additional support for other programming languages
-- [ ] Severity threshold config (e.g. "flag anything below 6")
-- [ ] Export findings as a markdown comment for GitHub PRs
+- Backend proxy so the API key isn't in the browser
+- Side-by-side diff view for the suggestion snippets
+- History of past reviews in the session
+- Additional support for other programming languages
+- Severity threshold config (e.g. "flag anything below 6")
+- Export findings as a markdown comment for GitHub PRs
 
 ## Built with
 
