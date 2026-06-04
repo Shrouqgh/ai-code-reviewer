@@ -20,7 +20,11 @@ Supports (for now): Python, JavaScript, SQL, and R.
 
 Open `index.html` in your browser. You'll need an [Anthropic API key](https://console.anthropic.com/).
 
-> **Note:** The API key is sent directly from your browser. This is fine for personal/demo use - do not deploy this publicly without adding a backend proxy.
+You'll be prompted for your Anthropic API key on load.
+
+> **Note:** The API key you enter is held in ~memory only~ and cleared when you close the tab - it never touches any server except Anthropic's.
+
+
 
 ## How it works
 
