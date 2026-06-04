@@ -371,7 +371,7 @@
   <div class="modal">
     <h2><i class="ti ti-key" aria-hidden="true" style="vertical-align:-2px; margin-right:6px"></i>Enter your Anthropic API key</h2>
     <p>Your key is stored in memory only for this session - it's never saved to disk, sent anywhere except Anthropic's API</p>
-    <input type="password" id="key-input" placeholder="sk-ant-..." autocomplete="off" />
+    <input type="text" id="key-input" placeholder="sk-ant-..." autocomplete="off" />
     <button class="btn-save" onclick="saveKey()">Start reviewing</button>
     <div class="privacy-note">
       Key lives in memory only and clears when you close the tab
@@ -383,7 +383,7 @@
   <i class="ti ti-code-dots" aria-hidden="true"></i>
   <div>
     <h1>AI Code Review Assistant</h1>
-    <p>Instant feedback on readability, structure & maintainability - before human review</p>
+    <p>Instant feedback on readability, structure & maintainability {before human review}</p>
   </div>
 </header>
 
@@ -401,16 +401,14 @@
   </div>
 
   <div class="lang-row" style="margin-top: 0.25rem;">
-    <span class="lang-label">Language:</span>
+    <span class="lang-label">Select a language:</span>
     <button class="lang-btn active" data-lang="Python">Python</button>
     <button class="lang-btn" data-lang="JavaScript">JavaScript</button>
-    <button class="lang-btn" data-lang="TypeScript">TypeScript</button>
-    <button class="lang-btn" data-lang="Go">Go</button>
     <button class="lang-btn" data-lang="SQL">SQL</button>
-    <button class="lang-btn" data-lang="Other">Other</button>
+    <button class="lang-btn" data-lang="R">R</button>
   </div>
 
-  <textarea id="code-input" placeholder="Paste your code here...&#10;&#10;Best results: a single function, class, or module (up to ~100 lines)."></textarea>
+  <textarea id="code-input" placeholder="Paste your code here...&#10;&#10;For best results: a single function, class, or module (up to ~100 lines)."></textarea>
 
   <div class="meta-row">
     <span class="char-count"><span id="char-count">0</span> chars</span>
@@ -427,15 +425,15 @@
 
   <div class="examples-row">
     <span class="example-label">Try an example:</span>
-    <button class="example-btn" onclick="loadExample('python_bad')">Python — needs work</button>
-    <button class="example-btn" onclick="loadExample('js_ok')">JavaScript — decent</button>
-    <button class="example-btn" onclick="loadExample('sql_poor')">SQL — poor style</button>
+    <button class="example-btn" onclick="loadExample('python_bad')">Python - needs work</button>
+    <button class="example-btn" onclick="loadExample('js_ok')">JavaScript - decent</button>
+    <button class="example-btn" onclick="loadExample('sql_poor')">SQL - poor style</button>
   </div>
 
   <div id="results">
     <div class="empty">
       <i class="ti ti-eye-off" aria-hidden="true"></i>
-      Paste code and click "Review code" to get started
+      Paste your code and click "Review code" to get started
     </div>
   </div>
 </main>
@@ -617,7 +615,7 @@ async function runReview() {
   // ───────── PROMPT ─────────
   // Core of the tool — edit this to tune review behaviour.
   // Model returns strict JSON only; no markdown, no preamble.
-  const prompt = `You are a senior code reviewer. Review the following ${selectedLang} code for readability, structure, and maintainability.
+  const prompt = `You are an elite automated systems architect and code reviewer within the Careem WorkOS engine. Your primary focus is evaluating code snippets for high-scale distributed complexity, concurrency, database performance, and low-latency execution.
 
 Return ONLY valid JSON - no markdown fences, no preamble, nothing else. Use this exact shape:
 {
@@ -631,22 +629,20 @@ Return ONLY valid JSON - no markdown fences, no preamble, nothing else. Use this
     {
       "type": "positive" | "improvement" | "critical",
       "title": "<6 words max>",
-      "body": "<1 sentence, under 20 words>",
+      "body": "<1 sentence, under 20 words focusing heavily on architectural efficiency or system integrity>",
       "suggestion": "<changed fragment only, max 5 lines, or empty string>"
     }
   ],
-  "summary": "<2 sentences max>"
+  "summary": "<2 sentences max assessing the code's readiness for high-scale, low-latency production environments>"
 }
 
 Rules:
-- findings must contain exactly 3 "improvement" items and exactly 1 "positive" item
-- Add 1 "critical" item only if there is a real bug, security issue, or data loss risk
-- title: max 6 words
-- body: 1 sentence only, under 20 words — be direct, no filler
-- suggestion: include only when the fix is non-obvious; max 5 lines, changed fragment only
-- Scale to the code: if it's trivial or broken, say so briefly — do not pad
+- findings must contain exactly 3 "improvement" items and exactly 1 "positive" item.
+- Add 1 "critical" item ONLY if there is a severe architectural flaw, concurrency race condition, vector/relational index mismatch, or performance bottleneck.
+- body: 1 sentence only, under 20 words — be hyper-specific, highly technical, and completely direct.
+- suggestion: include only when the fix optimizes performance or latency; max 5 lines, changed fragment only.
 
-Code:
+Code to Review:
 \`\`\`${selectedLang}
 ${code}
 \`\`\``;
@@ -661,7 +657,7 @@ ${code}
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-3-5-haiku-latest', // Standardized high-velocity production model
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -670,15 +666,21 @@ ${code}
     if (!resp.ok) {
       const errData = await resp.json().catch(() => ({}));
       const msg = errData?.error?.message || '';
-      if (resp.status === 401) throw new Error('Invalid API key — double-check it in the Anthropic console.');
-      if (resp.status === 400) throw new Error(`Bad request: ${msg || 'check model name or prompt format'}`);
+      if (resp.status === 401) throw new Error('Invalid API key — double-check your Anthropic console credentials.');
+      if (resp.status === 400) throw new Error(`Bad request: ${msg || 'Verify system payload formatting.'}`);
       throw new Error(`API error ${resp.status}: ${msg}`);
     }
 
     const data = await resp.json();
     const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const clean = raw.replace(/```json|```/g, '').trim();
-    renderResults(JSON.parse(clean));
+    
+    // Defensive engineering: Extract valid JSON object body safely using regex
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("Target engine failed to generate standard JSON structural output. Please try again.");
+    }
+    
+    renderResults(JSON.parse(jsonMatch[0].trim()));
 
   } catch (err) {
     document.getElementById('results').innerHTML = `
