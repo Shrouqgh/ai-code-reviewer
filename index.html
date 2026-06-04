@@ -31,16 +31,16 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #141a14;
-        --bg2: #1c241c;
-        --bg3: #223022;
+        --bg2: #131813;
+        --bg3: #1c231c;
         --text: #e8ede8;
         --muted: #8a9e8a;
-        --border: #2e402e;
-        --brand: #4caf82;
+        --border: #171a17;
+        --brand: #727771;
         --brand-light: #1a2e22;
         --amber: #e0a050;
         --amber-bg: #2a1f0a;
-        --green: #6abf50;
+        --green: #727771;
         --green-bg: #152010;
         --red: #e07070;
         --red-bg: #2a1010;
@@ -292,6 +292,71 @@
     footer a { color: var(--brand); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
+    /* ── API key modal ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 420px; width: 100%;
+    }
+    .modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .modal p  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 1.25rem; }
+    .modal input {
+      width: 100%;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg2);
+      color: var(--text);
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .modal input:focus { border-color: var(--brand); }
+    .modal .btn-save {
+      width: 100%;
+      padding: 10px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .modal .btn-save:hover { opacity: 0.9; }
+    .modal .privacy-note {
+      font-size: 11px; color: var(--muted);
+      text-align: center; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+
+    .key-status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .key-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    .key-change {
+      margin-left: auto;
+      font-size: 12px; color: var(--brand);
+      background: none; border: none; cursor: pointer;
+      padding: 0; text-decoration: underline;
+    }
+
     @media (max-width: 540px) {
       .score-grid { grid-template-columns: repeat(2, 1fr); }
       header { padding: 1rem; }
@@ -300,6 +365,20 @@
   </style>
 </head>
 <body>
+
+<!-- API key modal -->
+<div class="modal-backdrop" id="key-modal">
+  <div class="modal">
+    <h2><i class="ti ti-key" aria-hidden="true" style="vertical-align:-2px; margin-right:6px"></i>Enter your Anthropic API key</h2>
+    <p>Your key is stored in memory only for this session - it's never saved to disk, sent anywhere except Anthropic's API</p>
+    <input type="password" id="key-input" placeholder="sk-ant-..." autocomplete="off" />
+    <button class="btn-save" onclick="saveKey()">Start reviewing</button>
+    <div class="privacy-note">
+      <i class="ti ti-lock" aria-hidden="true" style="font-size:13px"></i>
+      Key lives in memory only and clears when you close the tab
+    </div>
+  </div>
+</div>
 
 <header>
   <i class="ti ti-code-dots" aria-hidden="true"></i>
@@ -315,11 +394,21 @@
   </h2>
 
   <div class="lang-row" style="margin-top: 1.25rem;">
+    <div class="key-status" id="key-status" style="display:none; width:100%">
+      <span class="key-dot"></span>
+      <span>API key active</span>
+      <button class="key-change" onclick="changeKey()">change</button>
+    </div>
+  </div>
+
+  <div class="lang-row" style="margin-top: 0.25rem;">
     <span class="lang-label">Language:</span>
     <button class="lang-btn active" data-lang="Python">Python</button>
     <button class="lang-btn" data-lang="JavaScript">JavaScript</button>
+    <button class="lang-btn" data-lang="TypeScript">TypeScript</button>
+    <button class="lang-btn" data-lang="Go">Go</button>
     <button class="lang-btn" data-lang="SQL">SQL</button>
-    <button class="lang-btn" data-lang="R">R</button>
+    <button class="lang-btn" data-lang="Other">Other</button>
   </div>
 
   <textarea id="code-input" placeholder="Paste your code here...&#10;&#10;Best results: a single function, class, or module (up to ~100 lines)."></textarea>
@@ -353,11 +442,38 @@
 </main>
 
 <footer>
-  Built with the <a href="https://www.anthropic.com" target="_blank">Anthropic Claude API</a> · <a href="https://github.com/shrouqgh" target="_blank">shrouqgh.github.io</a>
+  Built with the <a href="https://www.anthropic.com" target="_blank">Anthropic Claude API</a> ·
+  <a href="https://github.com/shrouqgh" target="_blank">shrouqgh.github.io</a>
 </footer>
 
 <script>
-// ── example snippets ──
+// ───────── API Key management ─────────
+let apiKey = null;
+
+function saveKey() {
+  const val = document.getElementById('key-input').value.trim();
+  if (!val.startsWith('sk-')) {
+    document.getElementById('key-input').style.borderColor = 'var(--red)';
+    return;
+  }
+  apiKey = val;
+  document.getElementById('key-modal').style.display = 'none';
+  document.getElementById('key-status').style.display = 'flex';
+}
+
+function changeKey() {
+  apiKey = null;
+  document.getElementById('key-input').value = '';
+  document.getElementById('key-modal').style.display = 'flex';
+  document.getElementById('key-status').style.display = 'none';
+}
+
+document.getElementById('key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveKey();
+  document.getElementById('key-input').style.borderColor = '';
+});
+
+
 const EXAMPLES = {
   python_bad: `def calc(l):
     r = 0
@@ -391,10 +507,10 @@ def process(data, flag, x=None, y=None, z=None):
   sql_poor: `select * from orders o, customers c where o.customer_id = c.id and o.status = 'active' and c.country = 'SA' order by o.created_at`
 };
 
-// ── state –––––
+// ───────── State ─────────
 let selectedLang = 'Python';
 
-// ── Language toggle ───
+// ───────── Language toggle ─────────
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
@@ -403,13 +519,13 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
   });
 });
 
-// ── char counter ───
+// ───────── Char counter ─────────
 const codeInput = document.getElementById('code-input');
 codeInput.addEventListener('input', () => {
   document.getElementById('char-count').textContent = codeInput.value.length;
 });
 
-// ── Load examples ───
+// ───────── Load examples ─────────
 function loadExample(key) {
   codeInput.value = EXAMPLES[key];
   document.getElementById('char-count').textContent = codeInput.value.length;
@@ -421,7 +537,7 @@ function loadExample(key) {
   selectedLang = lang;
 }
 
-// ── Helpers ───
+// ───────── Helpers ─────────
 function esc(s) {
   return String(s)
     .replace(/&/g, '&amp;')
@@ -451,7 +567,7 @@ function clearAll() {
     </div>`;
 }
 
-// ── Render results ───
+// ───────── Render results ─────────
 function renderResults(data) {
   const s = data.scores || {};
   const findings = data.findings || [];
@@ -491,7 +607,7 @@ function renderResults(data) {
     <div class="summary-box">${esc(data.summary || '')}</div>`;
 }
 
-// ── API call ───
+// ───────── API call ─────────
 async function runReview() {
   const code = codeInput.value.trim();
   if (!code) return;
@@ -499,11 +615,12 @@ async function runReview() {
   setLoading(true);
   document.getElementById('results').innerHTML = '';
 
-  // ── PROMPT ───
-  // This is the core of the tool where the model is asked to return strict JSON only
+  // ───────── PROMPT ─────────
+  // This is the core of the tool. Edit this prompt to tune review behaviour
+  // The model is asked to return strict JSON only
   const prompt = `You are a senior code reviewer. Review the following ${selectedLang} code for readability, structure, and maintainability.
 
-Return ONLY valid JSON — no markdown fences, no preamble, nothing else. Use this exact shape:
+Return ONLY valid JSON - no markdown fences, no preamble, nothing else. Use this exact shape:
 {
   "scores": {
     "readability": <integer 1-10>,
@@ -536,7 +653,12 @@ ${code}
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
